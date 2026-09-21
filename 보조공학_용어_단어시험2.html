@@ -1,0 +1,59 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>보조공학 용어 단어시험</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f6fb;font-family:Arial,"Noto Sans KR",sans-serif;color:#222}
+.wrap{max-width:760px;margin:30px auto;padding:16px}.card{background:#fff;border-radius:22px;padding:28px;box-shadow:0 10px 35px #0001}
+h1{margin:0 0 8px}.sub{color:#777}.menu{display:grid;gap:12px;margin-top:25px}
+.menu button{padding:18px;border:1px solid #ddd;border-radius:14px;background:#fafafa;font-size:18px;text-align:left;cursor:pointer}
+.menu button:hover{background:#eee}.top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.badge{background:#eee;padding:7px 11px;border-radius:999px;font-size:14px}.q{font-size:30px;font-weight:700;text-align:center;margin:38px 10px}
+input{width:100%;padding:15px;border:1px solid #ddd;border-radius:12px;font-size:18px}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:15px}.answers button{margin:0;text-align:left;background:#f5f5f5;border:1px solid #ddd;padding:16px;border-radius:12px;font-size:17px;cursor:pointer}
+button{border:0;border-radius:12px;padding:13px 18px;font-size:16px;cursor:pointer;margin:12px 6px 0 0}
+.primary{background:#222;color:white}.secondary{background:#eee}.ok{color:#16803a;font-weight:700}.bad{color:#c33;font-weight:700}
+#result{min-height:30px;margin-top:18px;font-size:17px}.bar{height:8px;background:#eee;border-radius:8px;overflow:hidden;margin:15px 0}.bar div{height:100%;background:#222;width:0}
+.hidden{display:none}@media(max-width:550px){.answers{grid-template-columns:1fr}}
+</style></head><body><div class="wrap"><div class="card">
+<div id="menu">
+<h1>📚 보조공학 용어 시험</h1><p class="sub">원하는 문제 유형을 직접 선택하세요.</p>
+<div class="menu">
+<button onclick="start('mc')">🔘 객관식<br><small>4개의 보기 중 정답을 선택</small></button>
+<button onclick="start('sa')">✍️ 주관식<br><small>정답을 직접 입력</small></button>
+<button onclick="start('both')">🔘✍️ 객관식 + 주관식<br><small>보기 선택과 직접 입력을 모두 확인</small></button>
+</div></div>
+<div id="quiz" class="hidden">
+<div class="top"><div><h1>📚 보조공학 용어 시험</h1><span id="mode" class="badge"></span></div><span id="score" class="badge">0점</span></div>
+<div class="bar"><div id="progress"></div></div><div id="counter" class="sub"></div>
+<div id="question" class="q"></div><div id="choices" class="answers"></div>
+<input id="answer" placeholder="정답을 입력하세요">
+<div><button class="primary" onclick="check()">정답 확인</button><button class="secondary" onclick="next()">다음 문제</button><button class="secondary" onclick="goMenu()">문제 유형 선택</button></div>
+<div id="result"></div></div></div></div>
+<script>
+const terms=[["Collagen", "콜라겐"], ["Elastic Fibers", "탄력섬유"], ["Ground Substance", "기질"], ["Prolonged Immobilization", "장기간 고정"], ["Diffusion", "확산"], ["Adhesion", "유착"], ["Cartilage", "연골"], ["Nutrition", "영양"], ["Chondrocytes", "연골 세포"], ["Loading", "하중"], ["Necrosis", "연골 괴사"], ["Involuntary Movement", "불수의적 움직임"], ["Voluntary Movement", "수의적 움직임"], ["Spasticity", "경직"], ["Wrist-Hand Orthosis (WHO)", "손목손보조기"], ["Shoulder-Elbow-Wrist-Hand Orthosis (SEWHO)", "어깨팔꿈치손 보조기"], ["Shoulder Orthosis (SO)", "어깨보조기"], ["Hand Orthosis (HO)", "손보조기"], ["Elbow Orthosis (EO)", "팔꿉보조기"], ["Upper Extremity Orthosis", "상지보조기"], ["Immobilization", "고정"], ["Thumb", "엄지손가락"], ["Opposition", "맞섬"], ["Static", "정적"], ["Dynamic", "동적"], ["Immobilization", "고정"], ["Mallet Finger", "망치손가락 보조기"], ["PIP/DIP Orthosis", "손가락 관절 보조기"]];let order=[],i=0,score=0,answered=false,type='',current=null;
+const $=x=>document.getElementById(x);
+function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+function start(t){type=t;order=shuffle(terms);i=0;score=0;$("menu").classList.add("hidden");$("quiz").classList.remove("hidden");show()}
+function goMenu(){$("quiz").classList.add("hidden");$("menu").classList.remove("hidden")}
+function show(){
+ if(i>=order.length){$("question").textContent="시험 끝! 🎉";$("choices").innerHTML="";$("answer").style.display="none";$("result").innerHTML=`<b>최종 점수: ${score} / ${order.length}</b>`;$("counter").textContent="완료";$("progress").style.width="100%";return}
+ current=order[i];answered=false;$("answer").value="";$("result").textContent="";$("answer").style.display=type==="mc"?"none":"block";
+ $("mode").textContent=type==="mc"?"객관식":type==="sa"?"주관식":"객관식 + 주관식";
+ const reverse=Math.random()<.5,prompt=reverse?current[1]:current[0],correct=reverse?current[0]:current[1];
+ $("question").textContent=prompt;$("question").dataset.answer=correct;$("counter").textContent=`${i+1} / ${order.length}`;$("score").textContent=`${score}점`;$("progress").style.width=(i/order.length*100)+"%";
+ $("choices").innerHTML="";delete $("choices").dataset.selected;
+ if(type!=="sa")makeChoices(correct,reverse);
+}
+function makeChoices(correct,reverse){
+ let pool=terms.map(x=>reverse?x[0]:x[1]).filter(x=>x!==correct);let opts=shuffle([correct,...shuffle(pool).slice(0,3)]);
+ opts.forEach(o=>{let b=document.createElement("button");b.textContent=o;b.onclick=()=>{document.querySelectorAll("#choices button").forEach(x=>x.style.outline="");b.style.outline="3px solid #888";$("choices").dataset.selected=o};$("choices").appendChild(b)})
+}
+function check(){
+ if(answered)return;let correct=$("question").dataset.answer,ok=false;
+ if(type==="mc")ok=$("choices").dataset.selected===correct;
+ else if(type==="sa")ok=$("answer").value.trim().toLowerCase()===correct.toLowerCase();
+ else ok=$("choices").dataset.selected===correct && $("answer").value.trim().toLowerCase()===correct.toLowerCase();
+ answered=true;if(ok){score++;$("result").innerHTML='<span class="ok">⭕ 정답!</span>'}else{$("result").innerHTML=`<span class="bad">❌ 오답</span> 정답: <b>${correct}</b>`}$("score").textContent=`${score}점`;
+}
+function next(){if(!answered)check();if(answered){i++;show()}}
+$("answer").addEventListener("keydown",e=>{if(e.key==="Enter")check()});
+</script></body></html>
